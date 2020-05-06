@@ -1,0 +1,330 @@
+{
+  "$schema": "https://vega.github.io/schema/vega/v5.json",
+  "description": "Intra-genus ANI/AF between GTDB representatives.",
+  "padding": 5,
+  "title": {
+    "text": "ANI \\ AF",
+    "anchor": "middle",
+    "fontSize": 12,
+    "fontWeight": "normal",
+    "frame": "group",
+    "offset": 4
+  },
+  "signals": [
+    { "name": "width", "update": "span(range('xscale'))" },
+    { "name": "height", "update": "width" },
+    { "name": "cellSize", "value": 15,
+      "bind": {
+        "name": "Cell size: ",
+        "input": "range", 
+        "min": 10, 
+        "max": 50, 
+        "step": 1
+        } 
+    },
+    {
+      "name": "palette",
+      "value": "RedYellowBlue",
+      "bind": {
+        "name": "Palette: ",
+        "input": "select",
+        "options": [
+          "Viridis",
+          "Magma",
+          "Inferno",
+          "Plasma",
+          "DarkBlue",
+          "DarkGold",
+          "DarkGreen",
+          "DarkMulti",
+          "DarkRed",
+          "LightGreyRed",
+          "LightGreyTeal",
+          "LightMulti",
+          "LightOrange",
+          "LightTealBlue",
+          "Blues",
+          "Browns",
+          "Greens",
+          "Greys",
+          "Oranges",
+          "Purples",
+          "Reds",
+          "TealBlues",
+          "Teals",
+          "WarmGreys",
+          "BlueOrange",
+          "BrownBlueGreen",
+          "PurpleGreen",
+          "PinkYellowGreen",
+          "PurpleOrange",
+          "RedBlue",
+          "RedGrey",
+          "RedYellowBlue",
+          "RedYellowGreen",
+          "BlueGreen",
+          "BluePurple",
+          "GoldGreen",
+          "GoldOrange",
+          "GoldRed",
+          "GreenBlue",
+          "OrangeRed",
+          "PurpleBlueGreen",
+          "PurpleBlue",
+          "PurpleRed",
+          "RedPurple",
+          "YellowGreenBlue",
+          "YellowGreen",
+          "YellowOrangeBrown",
+          "YellowOrangeRed"
+        ]
+      }
+    },
+    {
+      "name": "reverse",
+      "value": true,
+      "bind": {
+        "name": "Reverse: ",
+        "input": "checkbox"
+      }
+    },
+    {
+      "name": "tooltip",
+      "value": {},
+      "on": [
+        {"events": "rect:mouseover", "update": "datum"},
+        {"events": "rect:mouseout",  "update": "{}"}
+      ]
+    }
+  ],
+  "data": [
+    {
+      "name": "ani_af_data",
+      "url": "https://raw.githubusercontent.com/dparks1134/vega_templates/master/heatmap.tsv",
+      "format": {
+        "type": "tsv",
+        "parse": {
+          "ani_max": "number",
+          "af_max": "number",
+          "species1": "string",
+          "species2": "string"
+        }
+      },
+      "transform": [
+        {
+          "type": "extent",
+          "field": "ani_max",
+          "signal": "ani_extent"
+        },
+        {
+          "type": "extent",
+          "field": "af_max",
+          "signal": "af_extent"
+        }
+      ]
+    }
+  ],
+  "scales": [
+    {
+      "name": "xscale",
+      "type": "band",
+      "domain": {
+        "data": "ani_af_data",
+        "field": "species2",
+        "sort": true
+      },
+      "padding": 0.05,
+      "range": {"step": {"signal": "cellSize"}},
+      "round": true
+    },
+    {
+      "name": "yscale",
+      "type": "band",
+      "domain": {
+        "data": "ani_af_data",
+        "field": "species1",
+        "sort": true
+      },
+      "padding": 0.05,
+      "range": {"step": {"signal": "cellSize"}},
+      "round": true
+    },
+    {
+      "name": "af_color",
+      "type": "linear",
+      "range": {
+        "scheme": {
+          "signal": "palette"
+        }
+      },
+      "domain": [{"signal": "af_extent[0]"}, 100],
+      "reverse": {
+        "signal": "reverse"
+      },
+      "zero": false,
+      "nice": true
+    },
+    {
+      "name": "ani_color",
+      "type": "linear",
+      "range": {
+        "scheme": {
+          "signal": "palette"
+        }
+      },
+      "domain": [{"signal": "ani_extent[0]"}, 100],
+      "reverse": {
+        "signal": "reverse"
+      },
+      "zero": false,
+      "nice": true
+    }
+  ],
+  "axes": [
+    {
+      "orient": "bottom",
+      "scale": "xscale",
+      "domain": false,
+      "ticks": false,
+      "labelAlign": "right",
+      "labelPadding": 4,
+      "labelAngle": -45
+    },
+    {
+      "orient": "left",
+      "scale": "yscale",
+      "domain": false,
+      "ticks": false,
+      "labelPadding": 4
+    }
+  ],
+  "legends": [
+    {
+      "fill": "af_color",
+      "type": "gradient",
+      "title": "AF (%)",
+      "tickCount": 5,
+      "titleFontSize": 10,
+      "titleFontWeight": "normal",
+      "titlePadding": 4,
+      "gradientLength": {
+        "signal": "0.5*height - 15"
+      }
+    },
+    {
+      "fill": "ani_color",
+      "type": "gradient",
+      "title": "ANI (%)",
+      "tickCount": 5,
+      "titleFontSize": 10,
+      "titleFontWeight": "normal",
+      "titlePadding": 4,
+      "gradientLength": {
+        "signal": "0.5*height - 15"
+      }
+    }
+  ],
+  "marks": [
+    {
+      "type": "rect",
+      "from": {
+        "data": "ani_af_data"
+      },
+      "encode": {
+        
+        "enter": {
+          "tooltip": {"signal": "'ANI: ' + datum.ani_max + '%; AF: ' + datum.af_max + '%'"}
+        },
+        "update": {
+          "x": {
+            "scale": "xscale",
+            "field": "species2"
+          },
+          "y": {
+            "scale": "yscale",
+            "field": "species1"
+          },
+          "width": {
+            "scale": "xscale",
+            "band": 1.0
+          },
+          "height": {
+            "scale": "yscale",
+            "band": 1.0
+          },
+          "fill": [
+            {"test": "datum.species2 < datum.species1", "scale": "ani_color", "field": "ani_max"},
+            {"scale": "af_color", "field": "af_max"}
+          ]
+        }
+      }
+    },
+    {
+      "type": "text",
+      "name": "columns",
+      "from": {"data": "ani_af_data"},
+      "encode": {
+        "enter": {
+          "href": {"signal": "'https://gtdb.ecogenomic.org/genomes?gid=' + datum.gid2"},
+          "cursor": {"value": "pointer"}
+        },
+        "update": {
+          "x": [
+            {"test": "datum.species2 === tooltip.species2", "scale": "xscale", "field": "species2", "band": 0.5},
+            {"scale": "xscale", "field": "species2", "band": 0.5, "offset": 4}
+          ],
+          "y": [
+            {"test": "datum.species2 === tooltip.species2", "offset": {"signal": "height+2"}},
+            {"offset": {"signal": "height+9"}}
+          ],
+          "text": [
+            {"test": "datum.species2 === tooltip.species2", "value": "|"},
+            {"field": "species2"}
+          ],
+          "opacity":[
+            {"test": "datum.species2 === tooltip.species2", "value": 1},
+            {"value": 0}
+          ],
+          "fontSize": {"value": 10},
+          "angle": [
+            {"test": "datum.species2 === tooltip.species2", "value": 90},
+            {"value": -45}
+          ],
+          "align": {"value": "right"},
+          "baseline": {"value": "middle"},
+          "fill": { "value": "steelblue"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "name": "rows",
+      "from": {"data": "ani_af_data"},
+      "encode": {
+        "enter": {
+          "href": {"signal": "'https://gtdb.ecogenomic.org/genomes?gid=' + datum.gid1"},
+          "cursor": {"value": "pointer"}
+        },
+        "update": {
+          "x": [
+            {"test": "datum.species1 === tooltip.species1", "offset": 0},
+            {"offset": -4}
+          ],
+          "y": {"scale": "yscale", "field": "species1", "band": 0.5},
+          "text": [
+            {"test": "datum.species1 === tooltip.species1", "value": "|"},
+            {"field": "species1"}
+          ],
+          "opacity":[
+            {"test": "datum.species1 === tooltip.species1", "value": 1},
+            {"value": 0}
+          ],
+          "fontSize": {"value": 10},
+          "align": {"value": "right"},
+          "baseline": {"value": "middle"},
+          "fill": { "value": "steelblue"}
+        }
+      }
+    }
+  ]
+}
